@@ -1,0 +1,41 @@
+var model;
+var video;
+var loaded;
+    
+function setup() {
+  createCanvas(800, 600);
+  mobilenet.load().then(modelLoaded);
+    
+  video = createCapture(VIDEO);
+  video.size(800, 600); 
+  video.hide();
+      
+  createButton("Take a picture").mousePressed(btnClicked);
+    }
+    
+    
+  function classifyDone(res) {
+    print(res);
+    if (res[0].className =="hotdog"){
+      print("It's a hotdog. I wouldn't eat that if I were you");
+      }
+     if (res[0].className =="pizza"){
+      print("It's a pizza. It contains 730 calories. Don't eat that!!!");
+      }
+    else {
+      print("You can eat it");
+}
+    }
+    
+  function modelLoaded(net) {
+    model = net;
+    loaded = true;
+    print("Model loaded");
+    }
+    
+  function btnClicked() {
+    image(video, 0, 0, 800, 600);
+      if (loaded == true) {
+      model.classify(video.elt).then(classifyDone);
+      }
+    }

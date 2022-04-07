@@ -1,0 +1,95 @@
+var model_mobilenet;
+var video;
+var classifier;
+var exampleP, resultP;
+
+// Change the value of these two variables to change the name of your custom classes
+var className1 = "sans masque";
+var className2 = "avec masque";
+var className3 = "masque mal porté";
+
+
+function setup() {
+  // Initializing video
+  video = createCapture(VIDEO);
+  video.size(400, 300);
+  video.hide();
+
+  // Loading MobileNet
+  mobilenet.load().then(modelLoaded);
+  // Initializing a KNN Classifier
+  classifier = knnClassifier.create();
+
+  // User Interface
+  createCanvas(400, 300);
+  createButton("Add example for " + className1).mousePressed(btn0Clicked);
+  createButton("Add example for " + className2).mousePressed(btn1Clicked);
+  createButton ("Add example for " + className3).mousePressed(btn2Clicked);
+  exampleP = createP();
+  resultP = createP();
+}
+
+function draw() {
+  image(video, 0, 0, 400, 300);
+
+  // If there's at least one class, start prediction
+  if (classifier.getNumClasses() > 0) {
+    var inference = model_mobilenet.infer(video.elt);
+
+    classifier.predictClass(inference).then(classifyDone);
+  }
+}
+
+function classifyDone(result) {
+  resultP.html("KNN has detected a " + result.label);
+  // Have a look at the result object, you may find other usefull datas for your project!
+  print(result);
+  if((result.label)==className1){
+resultP.html("Vous ne portez pas de masque. Vous ne pouvez pas entrer. Veuillez acheter un masque dans le distributeur automatique qui se trouve derrière vous. !")}
+  else if ((result.label)==className2){
+  resultP.html("Vous pouvez entrer. Veillez à bien garder votre masque tant que vous serez à lintérieur du stade.") 
+}
+  else 
+  resultP.html("Veuillez remonter votre masque afin d'entrer à l'intérieur.")
+  
+  
+}
+
+function btn0Clicked() {
+  var inference = model_mobilenet.infer(video.elt);
+
+  classifier.addExample(inference, className1);
+  updateExampleText();
+}
+
+function btn1Clicked() {
+  var inference = model_mobilenet.infer(video.elt);
+
+  classifier.addExample(inference, className2);
+  updateExampleText();
+}
+
+function btn2Clicked() {
+  var inference = model_mobilenet.infer(video.elt);
+
+  classifier.addExample(inference, className3);
+  updateExampleText();
+}
+
+function modelLoaded(net) {
+  model_mobilenet = net;
+  print("Mobilenet is loaded");
+}
+
+function updateExampleText() {
+  exampleP.html(
+    "Examples for " + className1 + ": " +
+    classifier.getClassExampleCount()[className1] +
+    "<br>" +
+    "Examples for " + className2 + ": " +
+    classifier.getClassExampleCount()[className2]+
+    "<br>" +
+    "Examples for " + className3 + ": " +
+    classifier.getClassExampleCount()[className3]
+  );
+}
